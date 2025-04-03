@@ -53,6 +53,7 @@ public class AttachmentService {
         
         // Tạo tên file duy nhất
         String originalFilename = file.getOriginalFilename();
+        @SuppressWarnings("null")
         String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
         

@@ -5,7 +5,6 @@ import com.projectmanagement.userservice.dto.WorkListCreateDto;
 import com.projectmanagement.userservice.dto.WorkListDto;
 import com.projectmanagement.userservice.entity.User;
 import com.projectmanagement.userservice.entity.WorkList;
-import com.projectmanagement.userservice.entity.Workspace;
 import com.projectmanagement.userservice.service.AuthService;
 import com.projectmanagement.userservice.service.UserService;
 import com.projectmanagement.userservice.service.WorkListService;

@@ -1,5 +1,6 @@
 package com.projectmanagement.userservice.service;
 
+import com.projectmanagement.userservice.dto.IssueCreateDto;
 import com.projectmanagement.userservice.entity.*;
 import com.projectmanagement.userservice.repository.IssueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,12 @@ import java.util.Optional;
 public class IssueService {
     
     private final IssueRepository issueRepository;
+    private final UserService userService;
     
     @Autowired
-    public IssueService(IssueRepository issueRepository) {
+    public IssueService(IssueRepository issueRepository, UserService userService) {
         this.issueRepository = issueRepository;
+        this.userService = userService;
     }
     
     public List<Issue> getAllIssues() {
@@ -51,11 +54,64 @@ public class IssueService {
         return issueRepository.findByParentIssue(parentIssue);
     }
     
-    public Issue createIssue(Issue issue) {
-        issue.setCreatedDate(LocalDateTime.now());
+    public Issue createNewIssue(IssueCreateDto issueDto, WorkList workList, User currentUser) {
+        Issue issue = new Issue();
+        issue.setTitle(issueDto.getTitle());
+        issue.setDescription(issueDto.getDescription());
+        issue.setType(issueDto.getType());
+        issue.setPriority(issueDto.getPriority());
+        issue.setWorkList(workList);
+        issue.setReporter(currentUser);
+        
+        // Set default status
         if (issue.getStatus() == null) {
             issue.setStatus(IssueStatus.TODO);
         }
+        
+        issue.setCreatedDate(LocalDateTime.now());
+        issue.setDueDate(issueDto.getDueDate());
+        issue.setEstimatedHours(issueDto.getEstimatedHours());
+        
+        // Set assignee
+        if (issueDto.getAssigneeId() != null) {
+            userService.getUserById(issueDto.getAssigneeId())
+                    .ifPresent(issue::setAssignee);
+        }
+        
+        // Set parent issue
+        if (issueDto.getParentIssueId() != null) {
+            getIssueById(issueDto.getParentIssueId())
+                    .ifPresent(issue::setParentIssue);
+        }
+        
+        return createIssue(issue);
+    }
+    
+    public Issue updateExistingIssue(Issue existingIssue, IssueCreateDto issueDto) {
+        existingIssue.setTitle(issueDto.getTitle());
+        existingIssue.setDescription(issueDto.getDescription());
+        existingIssue.setType(issueDto.getType());
+        existingIssue.setPriority(issueDto.getPriority());
+        
+        // Update assignee
+        if (issueDto.getAssigneeId() != null) {
+            userService.getUserById(issueDto.getAssigneeId())
+                    .ifPresent(existingIssue::setAssignee);
+        }
+        
+        // Update parent issue
+        if (issueDto.getParentIssueId() != null) {
+            getIssueById(issueDto.getParentIssueId())
+                    .ifPresent(existingIssue::setParentIssue);
+        }
+        
+        existingIssue.setDueDate(issueDto.getDueDate());
+        existingIssue.setEstimatedHours(issueDto.getEstimatedHours());
+        
+        return updateIssue(existingIssue);
+    }
+    
+    public Issue createIssue(Issue issue) {
         return issueRepository.save(issue);
     }
     
